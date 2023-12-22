@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "88296079020",
+    "firebase_url": "https://classroom-management-55753-default-rtdb.firebaseio.com",
+    "project_id": "classroom-management-55753",
+    "storage_bucket": "classroom-management-55753.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:88296079020:android:cb362d020f7ca54af52909",
+        "android_client_info": {
+          "package_name": "com.example.class_management"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHrfKSzOEiQrsHf7bR0yK7VI-X-3zAstQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:88296079020:android:415df77179a207b0f52909",
+        "android_client_info": {
+          "package_name": "com.example.manage"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHrfKSzOEiQrsHf7bR0yK7VI-X-3zAstQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
