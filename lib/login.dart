@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:manage/screen/homepage.dart';
 
 import 'package:manage/student.dart';
 import 'package:manage/teacher.dart';
@@ -229,35 +230,37 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void route() {
-    User? user = FirebaseAuth.instance.currentUser;
-    var kk = FirebaseFirestore.instance
-            .collection('users')
-            .doc(user!.uid)
-            .get()
-            .then((DocumentSnapshot documentSnapshot) {
-      if (documentSnapshot.exists) {
-        if (documentSnapshot.get('rool') == "Teacher") {
-           Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>  Teacher(),
-          ),
-        );
-        }else{
-          Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>  StudentScreen(),
-          ),
-        );
-        }
-      } else {
-        print('Document does not exist on the database');
-      }
-    });
-  }
-
+  // void route() {
+  //   User? user = FirebaseAuth.instance.currentUser;
+  //   var kk = FirebaseFirestore.instance
+  //           .collection('users')
+  //           .doc(user!.uid)
+  //           .get()
+  //           .then((DocumentSnapshot documentSnapshot) {
+  //     if (documentSnapshot.exists) {
+  //       if (documentSnapshot.get('rool') == "Teacher") {
+  //          Navigator.pushReplacement(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) =>  Teacher(),
+  //         ),
+  //       );
+  //       }else{
+  //         Navigator.pushReplacement(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) =>  StudentScreen(),
+  //         ),
+  //       );
+  //       }
+  //     } else {
+  //       print('Document does not exist on the database');
+  //     }
+  //   });
+  // }
+void route(){
+  Navigator.push(context, MaterialPageRoute(builder: (context)=>HomePage()));
+}
   void signIn(String email, String password) async {
     if (_formkey.currentState!.validate()) {
       try {
