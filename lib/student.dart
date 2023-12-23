@@ -3,9 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:manage/login.dart';
 import 'package:intl/intl.dart';
+import 'package:manage/login.dart';
+
 class StudentScreen extends StatefulWidget {
+ 
   const StudentScreen({Key? key}) : super(key: key);
 
   @override
@@ -13,14 +15,50 @@ class StudentScreen extends StatefulWidget {
 }
 
 class _StudentScreenState extends State<StudentScreen> {
-  List<double> x = [];
-  String? uid = FirebaseAuth.instance.currentUser?.uid;
-  String? email = FirebaseAuth.instance.currentUser?.email;
-  late DatabaseReference _messagesRef;
-   List<Map<String, dynamic>> messages = [];
+  List<double> x=[0];
+ 
+late DatabaseReference _messagesRef;
+  List<Map<String, dynamic>> messages = [];
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+ String? uid = FirebaseAuth.instance.currentUser?.uid;
   final TextEditingController messageController = TextEditingController();
+
+
+  @override
+  void initState() {
+    super.initState();
+
+    _messagesRef = FirebaseDatabase.instance.ref().child('messages');
+
+    // Khởi tạo plugin thông báo
+    var initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    var initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+    flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      
+    );
+
+    _messagesRef.onChildAdded.listen((event) {
+      final dynamic values = event.snapshot.value;
+      Map<String, dynamic> message = {
+        'message': values['message'],
+        'timestamp': values['timestamp'],
+        'uid': values['uid'],
+        'email':values['email']
+      };
+
+      setState(() {
+        messages.add(message);
+      });
+
+      //showNotification('New Message', message['message']);
+    });
+  }
+
   Future<void> showNotification(String title, String body) async {
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'your_channel_id',
@@ -42,28 +80,12 @@ class _StudentScreenState extends State<StudentScreen> {
       payload: 'item x',
     );
   }
-  @override
-  void initState() {
-    super.initState();
-
-    _messagesRef = FirebaseDatabase.instance.ref().child('messages');
-
-    // Khởi tạo plugin thông báo
-    var initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
-
-    var initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-    );
-    flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
-    );
-  }
-
+    
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Học sinh'),
+        title: Text('Giáo Viên'),
         backgroundColor: Color.fromARGB(255, 4, 76, 185),
         actions: [
           IconButton(
@@ -74,7 +96,8 @@ class _StudentScreenState extends State<StudentScreen> {
       ),
       body: Column(
         children: [
-          Expanded(
+          Container(
+            height: 600,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Container(
@@ -84,43 +107,30 @@ class _StudentScreenState extends State<StudentScreen> {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: StreamBuilder(
-                    stream: _messagesRef.onChildAdded,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        final dynamic values = snapshot.data?.snapshot.value;
-                        Map<String, dynamic> message = {
-                          'message': values['message'],
-                          'timestamp': values['timestamp'],
-                          'uid': values['uid'],
-                        };
-
-                        messages.add(message);
-                        showNotification('New Message', message['message']);
-                      }
-
-                      return ListView.builder(
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          if (messages[index]['uid'] == uid) {
-                            x.add(5);
-                          } else {
-                            x.add(90);
-                          }
-                          return ListTile(
-                            contentPadding: EdgeInsets.only(left: x[index]),
-                            subtitle: Text(email! +
-                                "(student)" +
+                  child: ListView.builder(
+        itemCount: messages.length,
+        itemBuilder: (context, index) {
+          double xValue = messages[index]['uid'] == uid ? 220 : 2;
+                    x.add(xValue);
+          if(messages[index]['uid']==uid){
+            x.add(220);
+          }
+          else{
+             x.add(2);
+          }
+          return ListTile(
+       contentPadding: EdgeInsets.only(left: xValue),
+            title: Text(messages[index]['message']),
+          subtitle: Text(messages[index]['email']! +
+                                
                                 '\n' +
                                 DateFormat('yyyy-MM-dd HH:mm:ss')
                                     .format(DateTime.fromMillisecondsSinceEpoch(
                                         messages[index]['timestamp']))),
-                            title: Text(messages[index]['message']),
-                          );
-                        },
-                      );
-                    },
-                  ),
+                           
+          );
+        },
+      ),
                 ),
               ),
             ),
@@ -143,7 +153,7 @@ class _StudentScreenState extends State<StudentScreen> {
                 SizedBox(width: 8.0),
                 ElevatedButton(
                   onPressed: sendMessage,
-                  child: Text('Gửi cho học sinh'),
+                  child: Text('Gửi'),
                 ),
               ],
             ),
@@ -155,10 +165,12 @@ class _StudentScreenState extends State<StudentScreen> {
 
   Future<void> sendMessage() async {
     String? uid = FirebaseAuth.instance.currentUser?.uid;
+     String? email = FirebaseAuth.instance.currentUser?.email;
     String message = messageController.text.trim();
-    DateTime currentTime = DateTime.now();
+DateTime currentTime = DateTime.now();
     if (message.isNotEmpty) {
       FirebaseDatabase.instance.ref().child('messages').push().set({
+         'email': email,
         'uid': uid,
         'message': message,
         'timestamp': currentTime.millisecondsSinceEpoch,
@@ -178,4 +190,3 @@ class _StudentScreenState extends State<StudentScreen> {
     );
   }
 }
-
