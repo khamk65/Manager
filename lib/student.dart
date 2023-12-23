@@ -4,7 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:manage/login.dart';
-
+import 'package:intl/intl.dart';
 class StudentScreen extends StatefulWidget {
   const StudentScreen({Key? key}) : super(key: key);
 
@@ -13,47 +13,14 @@ class StudentScreen extends StatefulWidget {
 }
 
 class _StudentScreenState extends State<StudentScreen> {
-late DatabaseReference _messagesRef;
-  List<Map<String, dynamic>> messages = [];
+  List<double> x = [];
+  String? uid = FirebaseAuth.instance.currentUser?.uid;
+  String? email = FirebaseAuth.instance.currentUser?.email;
+  late DatabaseReference _messagesRef;
+   List<Map<String, dynamic>> messages = [];
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
-
   final TextEditingController messageController = TextEditingController();
-
-
-  @override
-  void initState() {
-    super.initState();
-
-    _messagesRef = FirebaseDatabase.instance.ref().child('messagesTeacher');
-
-    // Khởi tạo plugin thông báo
-    var initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
-
-    var initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-    );
-    flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
-      
-    );
-
-    _messagesRef.onChildAdded.listen((event) {
-      final dynamic values = event.snapshot.value;
-      Map<String, dynamic> message = {
-        'message': values['message'],
-        'timestamp': values['timestamp'],
-        'uid': values['uid'],
-      };
-
-      setState(() {
-        messages.add(message);
-      });
-
-      showNotification('New Message', message['message']);
-    });
-  }
-
   Future<void> showNotification(String title, String body) async {
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'your_channel_id',
@@ -75,7 +42,23 @@ late DatabaseReference _messagesRef;
       payload: 'item x',
     );
   }
-    
+  @override
+  void initState() {
+    super.initState();
+
+    _messagesRef = FirebaseDatabase.instance.ref().child('messages');
+
+    // Khởi tạo plugin thông báo
+    var initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    var initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+    flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,16 +84,43 @@ late DatabaseReference _messagesRef;
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: ListView.builder(
-        itemCount: messages.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-         
-            title: Text(messages[index]['message']),
-           
-          );
-        },
-      ),
+                  child: StreamBuilder(
+                    stream: _messagesRef.onChildAdded,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        final dynamic values = snapshot.data?.snapshot.value;
+                        Map<String, dynamic> message = {
+                          'message': values['message'],
+                          'timestamp': values['timestamp'],
+                          'uid': values['uid'],
+                        };
+
+                        messages.add(message);
+                        showNotification('New Message', message['message']);
+                      }
+
+                      return ListView.builder(
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          if (messages[index]['uid'] == uid) {
+                            x.add(5);
+                          } else {
+                            x.add(90);
+                          }
+                          return ListTile(
+                            contentPadding: EdgeInsets.only(left: x[index]),
+                            subtitle: Text(email! +
+                                "(student)" +
+                                '\n' +
+                                DateFormat('yyyy-MM-dd HH:mm:ss')
+                                    .format(DateTime.fromMillisecondsSinceEpoch(
+                                        messages[index]['timestamp']))),
+                            title: Text(messages[index]['message']),
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
@@ -146,12 +156,12 @@ late DatabaseReference _messagesRef;
   Future<void> sendMessage() async {
     String? uid = FirebaseAuth.instance.currentUser?.uid;
     String message = messageController.text.trim();
-
+    DateTime currentTime = DateTime.now();
     if (message.isNotEmpty) {
-      FirebaseDatabase.instance.ref().child('messagesStudent').push().set({
+      FirebaseDatabase.instance.ref().child('messages').push().set({
         'uid': uid,
         'message': message,
-        'timestamp': ServerValue.timestamp,
+        'timestamp': currentTime.millisecondsSinceEpoch,
       });
 
       messageController.clear();
@@ -168,3 +178,4 @@ late DatabaseReference _messagesRef;
     );
   }
 }
+
